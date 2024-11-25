@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+
+void generateKeyMatrix(char key[], char matrix[5][5]) {
+    int flag[26] = {0};
+    int x = 0, y = 0;
+    for (int i = 0; i < strlen(key); i++) {
+        if (key[i] != 'j' && !flag[key[i] - 'a']) {
+            matrix[x][y++] = key[i];
+            flag[key[i] - 'a'] = 1;
+            if (y == 5) {
+                y = 0;
+                x++;
+            }
+        }
+    }
+    for (char ch = 'a'; ch <= 'z'; ch++) {
+        if (ch != 'j' && !flag[ch - 'a']) {
+            matrix[x][y++] = ch;
+            flag[ch - 'a'] = 1;
+            if (y == 5) {
+                y = 0;
+                x++;
+            }
+        }
+    }
+}
+
+void playfairEncrypt(char text[], char matrix[5][5]) {
+    // Implementation goes here (encryption logic)
+}
+
+int main() {
+    char key[25], plaintext[100];
+    char matrix[5][5];
+    printf("Enter the keyword: ");
+    scanf("%s", key);
+    printf("Enter plaintext: ");
+    scanf("%s", plaintext);
+    generateKeyMatrix(key, matrix);
+    playfairEncrypt(plaintext, matrix);
+    return 0;
+}

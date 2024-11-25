@@ -1,0 +1,26 @@
+#include <stdio.h>
+#include <string.h>
+
+void polyalphabeticCipher(char text[], char key[]) {
+    int keyLen = strlen(key);
+    for (int i = 0, j = 0; i < strlen(text); i++) {
+        if (text[i] >= 'a' && text[i] <= 'z') {
+            text[i] = ((text[i] - 'a' + (key[j % keyLen] - 'a')) % 26) + 'a';
+            j++;
+        } else if (text[i] >= 'A' && text[i] <= 'Z') {
+            text[i] = ((text[i] - 'A' + (key[j % keyLen] - 'A')) % 26) + 'A';
+            j++;
+        }
+    }
+}
+
+int main() {
+    char text[100], key[100];
+    printf("Enter plaintext: ");
+    scanf("%s", text);
+    printf("Enter key: ");
+    scanf("%s", key);
+    polyalphabeticCipher(text, key);
+    printf("Ciphertext: %s\n", text);
+    return 0;
+}

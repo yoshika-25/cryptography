@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+// Perform frequency analysis attack
+void frequencyAttack(const char *ciphertext) {
+    char commonLetters[] = "etaoinshrdlcumwfgypbvkjxqz"; // Common English letters
+    int shift;
+    char possiblePlaintext[100];
+
+    printf("Top 10 Possible Plaintexts:\n");
+    for (int i = 0; i < 10; i++) {
+        shift = (ciphertext[0] - commonLetters[i] + 26) % 26;
+
+        // Decrypt using the shift
+        for (int j = 0; j < strlen(ciphertext); j++) {
+            if (isalpha(ciphertext[j])) {
+                possiblePlaintext[j] = ((ciphertext[j] - 'a' - shift + 26) % 26) + 'a';
+            } else {
+                possiblePlaintext[j] = ciphertext[j];
+            }
+        }
+        possiblePlaintext[strlen(ciphertext)] = '\0'; // Null-terminate
+        printf("%d. %s\n", i + 1, possiblePlaintext);
+    }
+}
+
+int main() {
+    char ciphertext[] = "qebobfpkljbppx";
+
+    printf("Ciphertext: %s\n", ciphertext);
+    frequencyAttack(ciphertext);
+
+    return 0;
+}

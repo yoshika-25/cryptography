@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <math.h>
+
+// Function to calculate modular exponentiation (a^b mod m)
+int mod_exp(int a, int b, int m) {
+    int result = 1;
+    a = a % m;
+    while (b > 0) {
+        if (b % 2 == 1) {
+            result = (result * a) % m;
+        }
+        b = b / 2;
+        a = (a * a) % m;
+    }
+    return result;
+}
+
+int main() {
+    int a = 5;  // public base
+    int q = 23; // public modulus (prime number)
+    
+    int x_A = 6; // Alice's private key
+    int x_B = 15; // Bob's private key
+    
+    // Alice computes A = a^x_A mod q
+    int A = mod_exp(a, x_A, q);
+    // Bob computes B = a^x_B mod q
+    int B = mod_exp(a, x_B, q);
+    
+    printf("Alice sends A: %d\n", A);
+    printf("Bob sends B: %d\n", B);
+    
+    // Alice computes shared secret key K_A = B^x_A mod q
+    int K_A = mod_exp(B, x_A, q);
+    // Bob computes shared secret key K_B = A^x_B mod q
+    int K_B = mod_exp(A, x_B, q);
+    
+    printf("Alice's computed shared secret: %d\n", K_A);
+    printf("Bob's computed shared secret: %d\n", K_B);
+    
+    return 0;
+}

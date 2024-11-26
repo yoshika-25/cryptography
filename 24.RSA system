@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to find the greatest common divisor using Euclidean algorithm
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// Function to compute modular inverse using Extended Euclidean Algorithm
+int mod_inverse(int e, int f_n) {
+    int t = 0, new_t = 1;
+    int r = f_n, new_r = e;
+    while (new_r != 0) {
+        int quotient = r / new_r;
+        int temp_t = t;
+        t = new_t;
+        new_t = temp_t - quotient * new_t;
+
+        int temp_r = r;
+        r = new_r;
+        new_r = temp_r - quotient * new_r;
+    }
+
+    if (r > 1) {
+        printf("No modular inverse exists.\n");
+        return -1; // No inverse exists
+    }
+
+    if (t < 0)
+        t = t + f_n;
+
+    return t;
+}
+
+// Function to factor n using trial division (for small n values)
+void find_pq(int n, int *p, int *q) {
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            *p = i;
+            *q = n / i;
+            return;
+        }
+    }
+}
+
+int main() {
+    int e = 31;  // Public key exponent
+    int n = 3599; // Modulus n
+
+    // Step 1: Find p and q using trial division
+    int p = 0, q = 0;
+    find_pq(n, &p, &q);
+    printf("Prime factors of n are: p = %d, q = %d\n", p, q);
+
+    // Step 2: Calculate Euler's totient function f(n) = (p-1) * (q-1)
+    int f_n = (p - 1) * (q - 1);
+    printf("Euler's totient function f(n) = %d\n", f_n);
+
+    // Step 3: Calculate the private key d using the modular inverse of e modulo f(n)
+    int d = mod_inverse(e, f_n);
+    if (d != -1) {
+        printf("Private key d = %d\n", d);
+    }
+
+    return 0;
+}

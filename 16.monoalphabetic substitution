@@ -1,0 +1,32 @@
+#include <stdio.h>
+#include <string.h>
+
+#define ALPHABET_SIZE 26
+
+void frequencyAnalysis(const char *cipherText) {
+    int freq[ALPHABET_SIZE] = {0};
+    int len = strlen(cipherText);
+
+
+    for (int i = 0; i < len; i++) {
+        if (cipherText[i] >= 'A' && cipherText[i] <= 'Z') {
+            freq[cipherText[i] - 'A']++;
+        } else if (cipherText[i] >= 'a' && cipherText[i] <= 'z') {
+            freq[cipherText[i] - 'a']++;
+        }
+    }
+
+    printf("Frequency analysis:\n");
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        printf("%c: %d\n", 'A' + i, freq[i]);
+    }
+
+    
+}
+
+int main() {
+    const char *cipherText = "Uifsf jt b tfdsfu dpef";
+    printf("Cipher Text: %s\n", cipherText);
+    frequencyAnalysis(cipherText);
+    return 0;
+}

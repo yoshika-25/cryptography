@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+#define BLOCK_SIZE 16 // 128-bit block size (for AES, 128 bits = 16 bytes)
+
+void xor_blocks(uint8_t *block1, uint8_t *block2, uint8_t *result) {
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        result[i] = block1[i] ^ block2[i];
+    }
+}
+
+void left_shift(uint8_t *input, uint8_t *output) {
+    uint8_t carry = 0;
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        output[i] = input[i] << 1 | carry;
+        carry = input[i] >> 7;  // Carry is the MSB of the current byte
+    }
+}
+
+void generate_subkey(uint8_t *key, uint8_t *K1, uint8_t *K2) {
+    uint8_t zero_block[BLOCK_SIZE] = {0};  // All-zero block
+    uint8_t encrypted_block[BLOCK_SIZE];
+    uint8_t shifted_K1[BLOCK_SIZE];
+    uint8_t temp_block[BLOCK_SIZE];
+    
+    // Encrypt the all-zero block with the key (simulating block cipher encryption)
+    // In real-world applications, use AES or another block cipher here
+    simple_encrypt(key, zero_block, encrypted_block);  // Simulated encryption
+    
+    // Generate K1 by left-shifting the encrypted block
+    left_shift(encrypted_block, K1);
+    
+    // If MSB of K1 is 1, XOR with the constant 0x87 for 128-bit block size
+    if (K1[0] & 0x80) {  // MSB is 1
+        uint8_t constant = 0x87;
+        uint8_t constant_block[BLOCK_SIZE] = { constant, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        xor_blocks(K1, constant_block, K1);
+    }
+
+    // Generate K2 by left-shifting K1
+    left_shift(K1, K2);
+    
+    // If MSB of K2 is 1, XOR with the constant 0x87 for 128-bit block size
+    if (K2[0] & 0x80) {
+        uint8_t constant = 0x87;
+        uint8_t constant_block[BLOCK_SIZE] = { constant, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        xor_blocks(K2, constant_block, K2);
+    }
+}
+
+// A simple simulated block cipher (substitute with a real block cipher in practice)
+void simple_encrypt(uint8_t *key, uint8_t *input, uint8_t *output) {
+    // For demonstration: This is not secure. Use AES or another secure block cipher in practice
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        output[i] = input[i] ^ key[i];
+    }
+}
+
+void print_block(uint8_t *block) {
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", block[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    // Simulated key (128 bits, 16 bytes)
+    uint8_t key[BLOCK_SIZE] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+                               0x77, 0x3c, 0x96, 0x9e, 0x0a, 0x3f, 0x94, 0x6b};
+
+    uint8_t K1[BLOCK_SIZE], K2[BLOCK_SIZE];
+    
+    // Generate the subkeys K1 and K2
+    generate_subkey(key, K1, K2);
+    
+    // Print the generated subkeys K1 and K2
+    printf("K1: ");
+    print_block(K1);
+    printf("K2: ");
+    print_block(K2);
+
+    return 0;
+}

@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+#define BLOCK_SIZE 16 // AES block size in bytes (128 bits)
+
+// Simulating a simple block cipher (for illustration purposes)
+// A real-world scenario would use an actual block cipher like AES
+void xor_block(uint8_t *block1, uint8_t *block2, uint8_t *result) {
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        result[i] = block1[i] ^ block2[i];
+    }
+}
+
+// A simple encryption function (substitute with an actual block cipher in practice)
+void simple_encrypt(uint8_t *key, uint8_t *input, uint8_t *output) {
+    // Just for illustration: in a real-world application, use a proper encryption algorithm like AES
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        output[i] = input[i] ^ key[i]; // Simple XOR encryption (not secure)
+    }
+}
+
+// CBC MAC for a one-block message
+void cbc_mac(uint8_t *key, uint8_t *message, uint8_t *mac) {
+    uint8_t iv[BLOCK_SIZE] = {0}; // Initialize IV (all zeros)
+    uint8_t ciphertext[BLOCK_SIZE];
+    uint8_t block[BLOCK_SIZE];
+
+    // Copy message to block (assuming message length is BLOCK_SIZE)
+    memcpy(block, message, BLOCK_SIZE);
+
+    // XOR with IV (initialization)
+    xor_block(block, iv, block);
+
+    // Encrypt the block
+    simple_encrypt(key, block, ciphertext);
+
+    // The final ciphertext is the MAC
+    memcpy(mac, ciphertext, BLOCK_SIZE);
+}
+
+// Adversary calculates the CBC MAC for X || (X_T)
+void adversary_mac(uint8_t *key, uint8_t *message, uint8_t *mac, uint8_t *adversary_mac) {
+    // Assume the adversary knows X and the MAC (X_T)
+    // For simplicity, we just use the given MAC for the second block (X_T)
+    uint8_t block[BLOCK_SIZE];
+    memcpy(block, message, BLOCK_SIZE); // Copy message X into block
+
+    // XOR with the previous MAC (adversary already knows it)
+    xor_block(block, mac, block);
+
+    // Encrypt the concatenated block (X || X_T)
+    simple_encrypt(key, block, adversary_mac);
+}
+
+int main() {
+    // Example key (128 bits for simplicity)
+    uint8_t key[BLOCK_SIZE] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+                               0x77, 0x3c, 0x96, 0x9e, 0x0a, 0x3f, 0x94, 0x6b};
+
+    // Message X (one block message)
+    uint8_t message[BLOCK_SIZE] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                                   0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
+    
+    // First calculate the CBC MAC for X
+    uint8_t mac[BLOCK_SIZE];
+    cbc_mac(key, message, mac);
+
+    // Print the MAC for X
+    printf("MAC for X: ");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", mac[i]);
+    }
+    printf("\n");
+
+    // Now adversary wants to calculate the MAC for X || (X_T)
+    uint8_t adversary_mac_result[BLOCK_SIZE];
+    adversary_mac(key, message, mac, adversary_mac_result);
+
+    // Print the adversary's MAC for X || (X_T)
+    printf("MAC for X || (X_T): ");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", adversary_mac_result[i]);
+    }
+    printf("\n");
+
+    return 0;
+}

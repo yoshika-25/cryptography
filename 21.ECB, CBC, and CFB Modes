@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/aes.h>
+#include <openssl/rand.h>
+
+#define BLOCK_SIZE 16  // AES block size
+
+// Function to add padding to the plaintext
+void pad_plaintext(unsigned char *plaintext, int *length) {
+    int padding_len = BLOCK_SIZE - (*length % BLOCK_SIZE);
+    for (int i = 0; i < padding_len; i++) {
+        plaintext[*length + i] = (i == 0) ? 0x80 : 0x00;
+    }
+    *length += padding_len;
+}
+
+// Function to print data in hexadecimal format
+void print_hex(const unsigned char *data, int length) {
+    for (int i = 0; i < length; i++) {
+        printf("%02X ", data[i]);
+    }
+    printf("\n");
+}
+
+// ECB mode encryption
+void encrypt_ecb(const unsigned char *key, const unsigned char *plaintext, unsigned char *ciphertext, int length) {
+    AES_KEY aes_key;
+    AES_set_encrypt_key(key, 128, &aes_key);
+    for (int i = 0; i < length; i += BLOCK_SIZE) {
+        AES_encrypt(plaintext + i, ciphertext + i, &aes_key);
+    }
+}
+
+// CBC mode encryption
+void encrypt_cbc(const unsigned char *key, unsigned char *iv, const unsigned char *plaintext, unsigned char *ciphertext, int length) {
+    AES_KEY aes_key;
+    AES_set_encrypt_key(key, 128, &aes_key);
+    AES_cbc_encrypt(plaintext, ciphertext, length, &aes_key, iv, AES_ENCRYPT);
+}
+
+// CFB mode encryption
+void encrypt_cfb(const unsigned char *key, unsigned char *iv, const unsigned char *plaintext, unsigned char *ciphertext, int length) {
+    AES_KEY aes_key;
+    AES_set_encrypt_key(key, 128, &aes_key);
+    int num = 0;
+    AES_cfb128_encrypt(plaintext, ciphertext, length, &aes_key, iv, &num, AES_ENCRYPT);
+}
+
+int main() {
+    unsigned char key[BLOCK_SIZE] = "examplekey123456";  // 128-bit key
+    unsigned char iv[BLOCK_SIZE];  // Initialization vector
+    unsigned char plaintext[128] = "This is an example plaintext for testing.";  // Example plaintext
+    unsigned char ciphertext[128];
+    unsigned char decrypted[128];
+    int plaintext_len = strlen((const char *)plaintext);
+
+    // Ensure IV is random for CBC/CFB modes
+    RAND_bytes(iv, BLOCK_SIZE);
+
+    // Pad plaintext
+    pad_plaintext(plaintext, &plaintext_len);
+    printf("Padded Plaintext:\n");
+    print_hex(plaintext, plaintext_len);
+
+    // ECB Mode
+    encrypt_ecb(key, plaintext, ciphertext, plaintext_len);
+    printf("\nECB Mode Ciphertext:\n");
+    print_hex(ciphertext, plaintext_len);
+
+    // CBC Mode
+    memcpy(iv, iv, BLOCK_SIZE);  // Reset IV for CBC mode
+    encrypt_cbc(key, iv, plaintext, ciphertext, plaintext_len);
+    printf("\nCBC Mode Ciphertext:\n");
+    print_hex(ciphertext, plaintext_len);
+
+    // CFB Mode
+    memcpy(iv, iv, BLOCK_SIZE);  // Reset IV for CFB mode
+    encrypt_cfb(key, iv, plaintext, ciphertext, plaintext_len);
+    printf("\nCFB Mode Ciphertext:\n");
+    print_hex(ciphertext, plaintext_len);
+
+    return 0;
+}

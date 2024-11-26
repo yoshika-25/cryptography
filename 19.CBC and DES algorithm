@@ -1,0 +1,18 @@
+#include <stdio.h>
+#include <string.h>
+
+void encryptCBC(const char *plainText, const char *key, char *cipherText) {
+    printf("3DES CBC encryption not implemented\n");
+}
+
+int main() {
+    const char *plainText = "This is a secret message.";
+    const char *key = "3DESExampleKey123";
+
+    char cipherText[128];
+
+    encryptCBC(plainText, key, cipherText);
+    printf("Cipher Text: %s\n", cipherText);
+
+    return 0;
+}

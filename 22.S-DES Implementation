@@ -1,0 +1,145 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
+#define BLOCK_SIZE 8  // S-DES block size (in bits)
+
+// S-DES parameters
+const int P10[] = {3, 5, 2, 7, 4, 10, 1, 9, 8, 6};
+const int P8[] = {6, 3, 7, 4, 8, 5, 10, 9};
+const int IP[] = {2, 6, 3, 1, 4, 8, 5, 7};
+const int IP_INV[] = {4, 1, 3, 5, 7, 2, 8, 6};
+const int EP[] = {4, 1, 2, 3, 2, 3, 4, 1};
+const int P4[] = {2, 4, 3, 1};
+
+const int S0[4][4] = {
+    {1, 0, 3, 2},
+    {3, 2, 1, 0},
+    {0, 2, 1, 3},
+    {3, 1, 3, 2}
+};
+
+const int S1[4][4] = {
+    {0, 1, 2, 3},
+    {2, 0, 1, 3},
+    {3, 0, 1, 0},
+    {2, 1, 0, 3}
+};
+
+// Utility functions
+void permute(int *out, const int *in, const int *table, int len) {
+    for (int i = 0; i < len; i++) {
+        out[i] = in[table[i] - 1];
+    }
+}
+
+void left_shift(int *key, int len, int shifts) {
+    int temp[len / 2];
+    memcpy(temp, key, shifts * sizeof(int));
+    memmove(key, key + shifts, (len / 2 - shifts) * sizeof(int));
+    memcpy(key + len / 2 - shifts, temp, shifts * sizeof(int));
+}
+
+void xor(int *a, const int *b, int len) {
+    for (int i = 0; i < len; i++) {
+        a[i] ^= b[i];
+    }
+}
+
+// Generate subkeys for S-DES
+void generate_keys(const int *key, int *k1, int *k2) {
+    int permuted[10];
+    permute(permuted, key, P10, 10);
+
+    // Split and left shift
+    int left[5], right[5];
+    memcpy(left, permuted, 5 * sizeof(int));
+    memcpy(right, permuted + 5, 5 * sizeof(int));
+
+    left_shift(left, 10, 1);
+    left_shift(right, 10, 1);
+
+    int combined[10];
+    memcpy(combined, left, 5 * sizeof(int));
+    memcpy(combined + 5, right, 5 * sizeof(int));
+    permute(k1, combined, P8, 8);
+
+    left_shift(left, 10, 2);
+    left_shift(right, 10, 2);
+
+    memcpy(combined, left, 5 * sizeof(int));
+    memcpy(combined + 5, right, 5 * sizeof(int));
+    permute(k2, combined, P8, 8);
+}
+
+// S-Box substitution
+void s_box(int *out, const int *in, const int s[4][4]) {
+    int row = (in[0] << 1) | in[3];
+    int col = (in[1] << 1) | in[2];
+    int value = s[row][col];
+    out[0] = (value >> 1) & 1;
+    out[1] = value & 1;
+}
+
+// Fk function
+void fk(int *out, const int *half, const int *subkey) {
+    int expanded[8];
+    permute(expanded, half, EP, 8);
+    xor(expanded, subkey, 8);
+
+    int left[4], right[4];
+    memcpy(left, expanded, 4 * sizeof(int));
+    memcpy(right, expanded + 4, 4 * sizeof(int));
+
+    int s0_out[2], s1_out[2];
+    s_box(s0_out, left, S0);
+    s_box(s1_out, right, S1);
+
+    int combined[4] = {s0_out[0], s0_out[1], s1_out[0], s1_out[1]};
+    permute(out, combined, P4, 4);
+}
+
+// S-DES encryption
+void sdes_encrypt(int *out, const int *plaintext, const int *k1, const int *k2) {
+    int permuted[8];
+    permute(permuted, plaintext, IP, 8);
+
+    int left[4], right[4];
+    memcpy(left, permuted, 4 * sizeof(int));
+    memcpy(right, permuted + 4, 4 * sizeof(int));
+
+    int fk_out[4];
+    fk(fk_out, right, k1);
+    xor(left, fk_out, 4);
+
+    // Swap
+    int temp[4];
+    memcpy(temp, left, 4 * sizeof(int));
+    memcpy(left, right, 4 * sizeof(int));
+    memcpy(right, temp, 4 * sizeof(int));
+
+    fk(fk_out, right, k2);
+    xor(left, fk_out, 4);
+
+    int combined[8];
+    memcpy(combined, left, 4 * sizeof(int));
+    memcpy(combined + 4, right, 4 * sizeof(int));
+    permute(out, combined, IP_INV, 8);
+}
+
+// CBC mode
+void cbc_encrypt(const int *key, int iv[BLOCK_SIZE], const int *plaintext, int *ciphertext, int blocks) {
+    int k1[8], k2[8];
+    generate_keys(key, k1, k2);
+
+    int previous[BLOCK_SIZE];
+    memcpy(previous, iv, BLOCK_SIZE * sizeof(int));
+
+    for (int i = 0; i < blocks; i++) {
+        int block[BLOCK_SIZE];
+        memcpy(block, plaintext + i * BLOCK_SIZE, BLOCK_SIZE * sizeof(int));
+        xor(block, previous, BLOCK_SIZE);
+        sdes_encrypt(ciphertext + i * BLOCK_SIZE, block, k1, k2);
+        memcpy(previous, ciphertext + i * BLOCK_SIZE, BLOCK_SIZE * sizeof(int));
+    }
+}

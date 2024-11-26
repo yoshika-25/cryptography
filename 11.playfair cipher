@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <math.h>
+
+unsigned long long factorial(int n) {
+    unsigned long long result = 1;
+    for (int i = 1; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}
+
+int main() {
+    int letters = 25; 
+    
+
+    unsigned long long total_keys = factorial(letters);
+    printf("Total possible keys (approx): %e\n", (double)total_keys);
+
+    unsigned long long unique_keys = total_keys / 2;
+    printf("Effectively unique keys (approx): %e\n", (double)unique_keys);
+
+    return 0;
+}

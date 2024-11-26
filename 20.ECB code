@@ -1,0 +1,20 @@
+#include <stdio.h>
+#include <string.h>
+
+void simulateECBError() {
+    printf("ECB: Error affects only the corresponding block.\n");
+}
+
+void simulateCBCError() {
+    printf("CBC: Error propagates to the next block.\n");
+}
+
+int main() {
+    printf("Simulating ECB Mode Error:\n");
+    simulateECBError();
+
+    printf("Simulating CBC Mode Error:\n");
+    simulateCBCError();
+
+    return 0;
+}

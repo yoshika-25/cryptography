@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#define BLOCK_SIZE 1024   // SHA-3 block size in bits
+#define NUM_LANES 5       // Number of lanes (5x5 matrix)
+#define LANE_SIZE 16      // Lane size in bits (1024 bits / 5x5 lanes = 16 bits)
+
+typedef uint16_t lane_t; // Each lane is a 16-bit value
+
+// A function to simulate the absorption of bits from the rate portion into the capacity
+void absorb_message(lane_t state[NUM_LANES][NUM_LANES], lane_t input[NUM_LANES]) {
+    for (int i = 0; i < NUM_LANES; i++) {
+        state[i][i] ^= input[i]; // Simulate absorption into the state matrix
+    }
+}
+
+// A function to track the propagation of nonzero bits into the capacity portion
+void track_nonzero_bits(lane_t state[NUM_LANES][NUM_LANES], bool nonzero[NUM_LANES][NUM_LANES]) {
+    for (int i = 0; i < NUM_LANES; i++) {
+        for (int j = 0; j < NUM_LANES; j++) {
+            if (state[i][j] != 0) {
+                nonzero[i][j] = true;
+            }
+        }
+    }
+}
+
+// Function to print the state matrix (for debugging)
+void print_state(lane_t state[NUM_LANES][NUM_LANES]) {
+    for (int i = 0; i < NUM_LANES; i++) {
+        for (int j = 0; j < NUM_LANES; j++) {
+            printf("%04x ", state[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// Function to count how many steps it will take before all capacity lanes become nonzero
+int count_steps_until_nonzero(lane_t state[NUM_LANES][NUM_LANES]) {
+    bool nonzero[NUM_LANES][NUM_LANES] = { false };
+    int steps = 0;
+
+    while (true) {
+        // Track nonzero bits in capacity portion
+        track_nonzero_bits(state, nonzero);
+        
+        // Check if all capacity lanes are nonzero
+        bool all_nonzero = true;
+        for (int i = 0; i < NUM_LANES; i++) {
+            for (int j = 0; j < NUM_LANES / 2; j++) {  // Capacity is in the first half
+                if (!nonzero[i][j]) {
+                    all_nonzero = false;
+                    break;
+                }
+            }
+            if (!all_nonzero) break;
+        }
+
+        if (all_nonzero) {
+            break;
+        }
+
+        // Simulate one absorption step
+        steps++;
+        lane_t input[NUM_LANES] = { 0 };
+        // Example: just set the first few lanes to nonzero values in the rate portion for simplicity
+        input[0] = 0xFFFF; // Some nonzero input for the rate portion
+
+        absorb_message(state, input);  // Absorb the message block into the state
+    }
+
+    return steps;
+}
+
+int main() {
+    // Initialize a 5x5 state matrix with zeros for the capacity and some nonzero values in the rate portion
+    lane_t state[NUM_LANES][NUM_LANES] = { 0 };
+
+    // Simulate the message being absorbed
+    int steps = count_steps_until_nonzero(state);
+    printf("Steps until all capacity lanes become nonzero: %d\n", steps);
+
+    return 0;
+}

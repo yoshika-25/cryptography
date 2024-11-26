@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// GCD function
+int gcd(int a, int b) {
+    while (b) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// Modular inverse using Extended Euclidean algorithm
+int mod_inverse(int e, int f_n) {
+    int t = 0, new_t = 1, r = f_n, new_r = e;
+    while (new_r) {
+        int q = r / new_r;
+        int temp_t = t;
+        t = new_t;
+        new_t = temp_t - q * new_t;
+        int temp_r = r;
+        r = new_r;
+        new_r = temp_r - q * new_r;
+    }
+    return (r > 1) ? -1 : (t < 0 ? t + f_n : t);
+}
+
+// Simple prime check
+int is_prime(int n) {
+    for (int i = 2; i * i <= n; i++) if (n % i == 0) return 0;
+    return n > 1;
+}
+
+// Generate random prime
+int generate_prime() {
+    int p;
+    do {
+        p = rand() % 100 + 100;  // random number between 100 and 200
+    } while (!is_prime(p));
+    return p;
+}
+
+// RSA Key Generation
+void generate_rsa_key_pair(int *n, int *e, int *d) {
+    int p = generate_prime(), q = generate_prime();
+    *n = p * q;
+    int f_n = (p - 1) * (q - 1);
+
+    do {
+        *e = rand() % (f_n - 2) + 2;  // Random e
+    } while (gcd(*e, f_n) != 1);
+
+    *d = mod_inverse(*e, f_n);  // Calculate private key d
+}
+
+int main() {
+    srand(time(NULL));
+    int n, e, d;
+    generate_rsa_key_pair(&n, &e, &d);
+    printf("Public Key: (%d, %d)\n", e, n);
+    printf("Private Key: %d\n", d);
+    return 0;
+}

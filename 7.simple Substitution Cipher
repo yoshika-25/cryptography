@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+// Substitution cipher mapping
+char mapping[26] = {'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'C', 'U', 'M', 'W', 'F', 'G', 'Y', 'P', 'B', 'V', 'K', 'J', 'X', 'Q', 'Z'};
+
+// Function to decrypt
+char decryptSubstitution(char c) {
+    if (isupper(c))
+        return mapping[c - 'A'];
+    return c;
+}
+
+int main() {
+    char ciphertext[] = "YOUR_CIPHERTEXT_HERE";
+    printf("Decrypted Text: ");
+    for (int i = 0; ciphertext[i] != '\0'; i++) {
+        printf("%c", decryptSubstitution(ciphertext[i]));
+    }
+    printf("\n");
+    return 0;
+}

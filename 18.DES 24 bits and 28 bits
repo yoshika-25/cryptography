@@ -1,0 +1,13 @@
+#include <stdio.h>
+
+void generateSubkeys(const char *initialKey) {
+    printf("Subkey generation not implemented\n");
+}
+
+int main() {
+    const char *initialKey = "SampleKey123456";
+
+    generateSubkeys(initialKey);
+
+    return 0;
+}

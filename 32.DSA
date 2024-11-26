@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdint.h>
+#include <string.h>
+
+#define PRIME_P 0xF7FF3B8D  // A small prime number for simulation
+#define PRIME_Q 0xF0237B   // A small prime number for simulation
+
+// DSA Functions
+unsigned int generate_k() {
+    // Random k generation
+    return rand() % PRIME_Q;
+}
+
+unsigned int mod_inverse(unsigned int a, unsigned int m) {
+    // Calculate modular inverse of a under modulo m using Extended Euclidean Algorithm
+    int t = 0, new_t = 1;
+    int r = m, new_r = a;
+    while (new_r != 0) {
+        int quotient = r / new_r;
+        t -= quotient * new_t;
+        r -= quotient * new_r;
+        if (r == 0) break;
+        int temp = t;
+        t = new_t;
+        new_t = temp;
+    }
+    if (r > 1) return -1; // No inverse exists
+    if (t < 0) t += m;
+    return t;
+}
+
+unsigned int dsa_sign(unsigned int message, unsigned int private_key) {
+    unsigned int k = generate_k();
+    unsigned int r = (message * k) % PRIME_P;
+    unsigned int s = (private_key * r + k * message) % PRIME_Q;
+
+    printf("DSA Signature: r = %u, s = %u\n", r, s);
+    return r;
+}
+
+// RSA Functions
+unsigned int mod_exp(unsigned int base, unsigned int exp, unsigned int mod) {
+    unsigned int result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+unsigned int rsa_sign(unsigned int message, unsigned int private_key, unsigned int n) {
+    // RSA signing: message^private_key mod n
+    return mod_exp(message, private_key, n);
+}
+
+int main() {
+    srand(time(NULL));
+
+    // Simulating message and keys
+    unsigned int message = 12345; // Simulated message
+    unsigned int private_key_dsa = 1234; // DSA private key
+    unsigned int private_key_rsa = 6789; // RSA private key
+    unsigned int n = PRIME_P * PRIME_Q; // RSA modulus
+
+    // DSA Signature (with random k)
+    unsigned int r_dsa = dsa_sign(message, private_key_dsa);
+
+    // RSA Signature (using the same private key)
+    unsigned int rsa_signature = rsa_sign(message, private_key_rsa, n);
+    printf("RSA Signature: %u\n", rsa_signature);
+
+    // Simulating DSA for the same message again
+    unsigned int r_dsa_second = dsa_sign(message, private_key_dsa);
+
+    return 0;
+}

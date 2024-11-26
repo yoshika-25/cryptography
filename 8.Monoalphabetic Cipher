@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+
+// Monoalphabetic cipher mapping
+char plaintext[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char cipher[] = "CIPHERABDFGJKLMNOQSTUVWXYZ"; // Example keyword-based mapping
+
+// Encrypt function
+char encryptMono(char c) {
+    if (c >= 'A' && c <= 'Z')
+        return cipher[c - 'A'];
+    return c;
+}
+
+// Decrypt function
+char decryptMono(char c) {
+    for (int i = 0; i < 26; i++) {
+        if (cipher[i] == c)
+            return plaintext[i];
+    }
+    return c;
+}
+
+int main() {
+    char text[] = "YOUR_TEXT_HERE";
+    char encrypted[100], decrypted[100];
+
+    printf("Original Text: %s\n", text);
+
+    // Encrypt
+    for (int i = 0; text[i] != '\0'; i++)
+        encrypted[i] = encryptMono(text[i]);
+    encrypted[strlen(text)] = '\0';
+    printf("Encrypted Text: %s\n", encrypted);
+
+    // Decrypt
+    for (int i = 0; encrypted[i] != '\0'; i++)
+        decrypted[i] = decryptMono(encrypted[i]);
+    decrypted[strlen(encrypted)] = '\0';
+    printf("Decrypted Text: %s\n", decrypted);
+
+    return 0;
+}

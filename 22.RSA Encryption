@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <math.h>
+
+// Function to calculate gcd
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// Extended Euclidean algorithm to find modular inverse
+int mod_inverse(int e, int f_n) {
+    int t = 0, new_t = 1;
+    int r = f_n, new_r = e;
+    while (new_r != 0) {
+        int quotient = r / new_r;
+        int temp_t = t;
+        t = new_t;
+        new_t = temp_t - quotient * new_t;
+        int temp_r = r;
+        r = new_r;
+        new_r = temp_r - quotient * new_r;
+    }
+    return (r > 1) ? -1 : (t < 0 ? t + f_n : t);
+}
+
+// Encrypt message using RSA (plaintext is a single integer)
+int rsa_encrypt(int m, int e, int n) {
+    return (int)pow(m, e) % n;
+}
+
+// Decrypt message using RSA
+int rsa_decrypt(int c, int d, int n) {
+    return (int)pow(c, d) % n;
+}
+
+int main() {
+    int p = 61, q = 53;  // Two prime numbers
+    int n = p * q;       // Modulus
+    int f_n = (p - 1) * (q - 1); // Euler's totient
+    int e = 17;          // Public exponent
+    int d = mod_inverse(e, f_n); // Private exponent
+    
+    printf("Public Key: (e = %d, n = %d)\n", e, n);
+    printf("Private Key: d = %d\n", d);
+
+    // Example plaintext (say 'H' -> 7)
+    int plaintext = 7;
+
+    // Encrypt
+    int ciphertext = rsa_encrypt(plaintext, e, n);
+    printf("Encrypted message: %d\n", ciphertext);
+
+    // Decrypt
+    int decrypted = rsa_decrypt(ciphertext, d, n);
+    printf("Decrypted message: %d\n", decrypted);
+    
+    return 0;
+}

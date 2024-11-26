@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <string.h>
+
+// Function to multiply matrices
+void matrixMultiply(int key[2][2], int text[2], int result[2]) {
+    for (int i = 0; i < 2; i++) {
+        result[i] = 0;
+        for (int j = 0; j < 2; j++) {
+            result[i] += key[i][j] * text[j];
+        }
+        result[i] %= 26; // Modulo 26 for Hill cipher
+    }
+}
+
+// Function to encrypt plaintext using the Hill cipher
+void hillEncrypt(char plaintext[], int key[2][2]) {
+    int n = strlen(plaintext);
+    printf("Ciphertext: ");
+    for (int i = 0; i < n; i += 2) {
+        int text[2] = {plaintext[i] - 'a', plaintext[i + 1] - 'a'};
+        int result[2];
+        matrixMultiply(key, text, result);
+        printf("%c%c", result[0] + 'a', result[1] + 'a');
+    }
+    printf("\n");
+}
+
+int main() {
+    char plaintext[] = "meetmeattheusualplaceattenrathereightoclock";
+    int key[2][2] = {
+        {9, 4},
+        {5, 7}
+    };
+
+    // Check length of plaintext
+    if (strlen(plaintext) % 2 != 0) {
+        strcat(plaintext, "x"); // Append 'x' to make it even
+    }
+
+    printf("Plaintext: %s\n", plaintext);
+    hillEncrypt(plaintext, key);
+
+    return 0;
+}

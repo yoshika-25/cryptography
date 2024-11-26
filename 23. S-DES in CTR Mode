@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <string.h>
+
+#define BLOCK_SIZE 8
+
+// XOR function
+void xor(int *out, const int *a, const int *b, int len) {
+    for (int i = 0; i < len; i++) out[i] = a[i] ^ b[i];
+}
+
+// Simplified permutation function (mocked for brevity)
+void permute(int *out, const int *in, const int *perm, int len) {
+    for (int i = 0; i < len; i++) out[i] = in[perm[i] - 1];
+}
+
+// S-DES encryption (mock function for brevity)
+void sdes_encrypt(int *out, const int *in, const int *key) {
+    // Simulating S-DES encryption for demo (key ignored for now)
+    for (int i = 0; i < BLOCK_SIZE; i++) out[i] = in[i];  // Replace with real S-DES logic
+}
+
+// CTR encryption/decryption
+void ctr(int *out, const int *key, int *counter, const int *data, int blocks) {
+    for (int i = 0; i < blocks; i++) {
+        int keystream[BLOCK_SIZE];
+        sdes_encrypt(keystream, counter, key);
+        xor(out + i * BLOCK_SIZE, keystream, data + i * BLOCK_SIZE, BLOCK_SIZE);
+
+        // Increment counter
+        for (int j = BLOCK_SIZE - 1; j >= 0; j--) {
+            if (++counter[j] %= 2) break;
+        }
+    }
+}
+
+// Main program
+int main() {
+    int key[BLOCK_SIZE] = {0, 1, 1, 1, 1, 1, 1, 0};  // Mock 8-bit key
+    int counter[BLOCK_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0};
+    int plaintext[] = {0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0};  // 2 blocks
+    int ciphertext[16], decrypted[16];
+
+    ctr(ciphertext, key, counter, plaintext, 2);
+    printf("Ciphertext: ");
+    for (int i = 0; i < 16; i++) printf("%d", ciphertext[i]);
+    printf("\n");
+
+    memcpy(counter, (int[]){0, 0, 0, 0, 0, 0, 0, 0}, BLOCK_SIZE * sizeof(int));  // Reset counter
+    ctr(decrypted, key, counter, ciphertext, 2);
+    printf("Decrypted: ");
+    for (int i = 0; i < 16; i++) printf("%d", decrypted[i]);
+    printf("\n");
+
+    return 0;
+}

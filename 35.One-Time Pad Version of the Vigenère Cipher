@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+
+#define ALPHABET_SIZE 26
+
+// Function to generate a random key stream for the one-time pad
+void generate_key(char *key, int length) {
+    srand(time(0));  // Seed the random number generator with the current time
+    for (int i = 0; i < length; i++) {
+        key[i] = rand() % ALPHABET_SIZE;  // Random number between 0 and 25
+    }
+}
+
+// Function to encrypt plaintext using the one-time pad version of the Vigenère cipher
+void encrypt(char *plaintext, char *key, char *ciphertext, int length) {
+    for (int i = 0; i < length; i++) {
+        // Encrypt each letter: (plaintext letter + key letter) mod 26
+        ciphertext[i] = (plaintext[i] - 'A' + key[i]) % ALPHABET_SIZE + 'A';
+    }
+    ciphertext[length] = '\0';  // Null terminate the ciphertext string
+}
+
+// Function to decrypt ciphertext using the one-time pad version of the Vigenère cipher
+void decrypt(char *ciphertext, char *key, char *decrypted_text, int length) {
+    for (int i = 0; i < length; i++) {
+        // Decrypt each letter: (ciphertext letter - key letter + 26) mod 26
+        decrypted_text[i] = (ciphertext[i] - 'A' - key[i] + ALPHABET_SIZE) % ALPHABET_SIZE + 'A';
+    }
+    decrypted_text[length] = '\0';  // Null terminate the decrypted string
+}
+
+int main() {
+    char plaintext[] = "HELLOTHISISAVIGENERECIPHEREXAMPLE";  // Example plaintext
+    int length = strlen(plaintext);
+    
+    // Remove any non-alphabetic characters or convert them to uppercase (optional)
+    for (int i = 0; i < length; i++) {
+        if (plaintext[i] < 'A' || plaintext[i] > 'Z') {
+            plaintext[i] = 'A';  // For simplicity, replace non-alphabetic chars with 'A'
+        }
+    }
+
+    char key[length];  // Key stream to encrypt the plaintext
+    generate_key(key, length);  // Generate the random key
+    
+    printf("Generated Key Stream: ");
+    for (int i = 0; i < length; i++) {
+        printf("%d ", key[i]);
+    }
+    printf("\n");
+
+    char ciphertext[length + 1];  // To store the ciphertext
+    encrypt(plaintext, key, ciphertext, length);
+    
+    printf("Encrypted Text: %s\n", ciphertext);
+
+    char decrypted_text[length + 1];  // To store the decrypted text
+    decrypt(ciphertext, key, decrypted_text, length);
+    
+    printf("Decrypted Text: %s\n", decrypted_text);
+
+    return 0;
+}

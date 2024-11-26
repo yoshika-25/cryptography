@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to calculate the determinant of a 2x2 matrix
+int determinant(int matrix[2][2]) {
+    return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]);
+}
+
+// Function to find the modular inverse of a number under modulo 26
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1; // Inverse doesn't exist
+}
+
+// Function to find the inverse of a 2x2 matrix modulo 26
+int matrixInverse(int matrix[2][2], int inverse[2][2]) {
+    int det = determinant(matrix);
+    det = (det % 26 + 26) % 26; // Ensure determinant is positive modulo 26
+    int detInverse = modInverse(det, 26);
+    if (detInverse == -1) {
+        printf("Matrix is not invertible under modulo 26.\n");
+        return 0;
+    }
+
+    // Compute the inverse matrix
+    inverse[0][0] = (matrix[1][1] * detInverse) % 26;
+    inverse[1][1] = (matrix[0][0] * detInverse) % 26;
+    inverse[0][1] = (-matrix[0][1] * detInverse + 26) % 26;
+    inverse[1][0] = (-matrix[1][0] * detInverse + 26) % 26;
+
+    return 1; // Success
+}
+
+// Function to multiply two 2x2 matrices modulo 26
+void matrixMultiply(int a[2][2], int b[2][2], int result[2][2]) {
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < 2; k++) {
+                result[i][j] += a[i][k] * b[k][j];
+            }
+            result[i][j] %= 26;
+        }
+    }
+}
+
+int main() {
+    // Example plaintext-ciphertext pairs
+    int plaintext[2][2] = {
+        {7, 8}, // Corresponds to "hi"
+        {19, 4} // Corresponds to "te"
+    };
+
+    int ciphertext[2][2] = {
+        {11, 15}, // Corresponds to "lp"
+        {7, 20}   // Corresponds to "hu"
+    };
+
+    // Find the inverse of the plaintext matrix
+    int plaintextInverse[2][2];
+    if (!matrixInverse(plaintext, plaintextInverse)) {
+        return 1; // Exit if the plaintext matrix is not invertible
+    }
+
+    // Calculate the key matrix
+    int key[2][2];
+    matrixMultiply(ciphertext, plaintextInverse, key);
+
+    // Print the key matrix
+    printf("Key matrix:\n");
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            printf("%d ", key[i][j]);
+        }
+        printf("\n");
+    }
+
+    return 0;
+}
